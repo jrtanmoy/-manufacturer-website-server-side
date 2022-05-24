@@ -22,6 +22,7 @@ async function run(){
         const purchaseCollection = client.db('manufacturer_website').collection('purchase');
         const reviewCollection = client.db('manufacturer_website').collection('review');
         const userProfileCollection = client.db('manufacturer_website').collection('profile-info');
+        const userCollection = client.db('manufacturer_website').collection('users');
 
 
         app.get('/tool', async(req, res) =>{
@@ -83,6 +84,18 @@ async function run(){
          
           res.send(result);
         });
+
+        app.put('/user/:email', async (req, res) => {
+          const email = req.params.email;
+          const user = req.body;
+          const filter = { email: email };
+          const options = { upsert: true };
+          const updateDoc = {
+            $set: user,
+          };
+          const result = await userCollection.updateOne(filter, updateDoc, options);
+          res.send(result);
+        })
     }
     finally{
 
