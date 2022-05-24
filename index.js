@@ -20,6 +20,7 @@ async function run(){
         await client.connect();
         const toolCollection = client.db('manufacturer_website').collection('tools');
         const purchaseCollection = client.db('manufacturer_website').collection('purchase');
+        const reviewCollection = client.db('manufacturer_website').collection('review');
 
 
         app.get('/tool', async(req, res) =>{
@@ -53,6 +54,12 @@ async function run(){
           const id = req.params.id;
           const filter = { _id: ObjectId(id) };
           const result = await purchaseCollection.deleteOne(filter);
+          res.send(result);
+        })
+
+        app.post('/review', async(req, res) =>{
+          const review = req.body;
+          const result = await reviewCollection.insertOne(review);
           res.send(result);
         })
     }
