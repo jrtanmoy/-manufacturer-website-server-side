@@ -58,15 +58,15 @@ async function run() {
     app.get('/purchase', verifyJWT, async (req, res) => {
       const email = req.query.email;
       const decodedEmail = req.decoded.email;
-      if(email=== decodedEmail){
+      if (email === decodedEmail) {
         const query = { email: email };
         const purchase = await purchaseCollection.find(query).toArray();
         return res.send(purchase);
       }
-      else{
-        return res.status(403).send({message: 'forbidden access'});
+      else {
+        return res.status(403).send({ message: 'forbidden access' });
       }
-      
+
     })
 
     app.post('/purchase', async (req, res) => {
@@ -107,6 +107,11 @@ async function run() {
 
       res.send(result);
     });
+
+    app.get('/user', async (req, res) => {
+      const users = await userCollection.find().toArray();
+      res.send(users);
+    })
 
     app.put('/user/:email', async (req, res) => {
       const email = req.params.email;
