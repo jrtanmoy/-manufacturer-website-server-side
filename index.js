@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
@@ -15,91 +16,114 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
-async function run(){
-    try{
-        await client.connect();
-        const toolCollection = client.db('manufacturer_website').collection('tools');
-        const purchaseCollection = client.db('manufacturer_website').collection('purchase');
-        const reviewCollection = client.db('manufacturer_website').collection('review');
-        const userProfileCollection = client.db('manufacturer_website').collection('profile-info');
-        const userCollection = client.db('manufacturer_website').collection('users');
-
-
-        app.get('/tool', async(req, res) =>{
-            const query = {};
-            const cursor = toolCollection.find(query);
-            const tools = await cursor.toArray();
-            res.send(tools);
-        })
-
-        app.get('/tool/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: ObjectId(id) };
-            const tool = await toolCollection.findOne(query);
-            res.send(tool);
-        })
-
-        app.get('/purchase', async(req, res) =>{
-          const email = req.query.email;
-          const query = {email: email};
-          const purchase = await purchaseCollection.find(query).toArray();
-          res.send(purchase);
-        })
-
-        app.post('/purchase', async(req, res) =>{
-          const purchase = req.body;
-          const result = await purchaseCollection.insertOne(purchase);
-          res.send(result);
-        })
-
-        app.delete('/purchase/:id', async (req, res) => {
-          const id = req.params.id;
-          const filter = { _id: ObjectId(id) };
-          const result = await purchaseCollection.deleteOne(filter);
-          res.send(result);
-        })
-
-        app.get('/review', async(req, res) =>{
-          const query = {};
-          const cursor = reviewCollection.find(query);
-          const tools = (await cursor.toArray()).reverse();
-          res.send(tools);
-      })
-
-        app.post('/review', async(req, res) =>{
-          const review = req.body;
-          const result = await reviewCollection.insertOne(review);
-          res.send(result);
-        })
-
-        app.put('/userinfo/:email', async (req, res) => {
-          const email = req.params.email;
-          const userinfo = req.body;
-          const filter = { email: email };
-          const options = { upsert: true };
-          const updateDoc = {
-            $set: userinfo,
-          };
-          const result = await userProfileCollection.updateOne(filter, updateDoc, options);
-         
-          res.send(result);
-        });
-
-        app.put('/user/:email', async (req, res) => {
-          const email = req.params.email;
-          const user = req.body;
-          const filter = { email: email };
-          const options = { upsert: true };
-          const updateDoc = {
-            $set: user,
-          };
-          const result = await userCollection.updateOne(filter, updateDoc, options);
-          res.send(result);
-        })
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: 'UnAuthorized access' });
+  }
+  const token = authHeader.split(' ')[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: 'Forbidden access' })
     }
-    finally{
+    req.decoded = decoded;
+    next();
+  });
+}
 
-    }
+async function run() {
+  try {
+    await client.connect();
+    const toolCollection = client.db('manufacturer_website').collection('tools');
+    const purchaseCollection = client.db('manufacturer_website').collection('purchase');
+    const reviewCollection = client.db('manufacturer_website').collection('review');
+    const userProfileCollection = client.db('manufacturer_website').collection('profile-info');
+    const userCollection = client.db('manufacturer_website').collection('users');
+
+
+    app.get('/tool', async (req, res) => {
+      const query = {};
+      const cursor = toolCollection.find(query);
+      const tools = await cursor.toArray();
+      res.send(tools);
+    })
+
+    app.get('/tool/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const tool = await toolCollection.findOne(query);
+      res.send(tool);
+    })
+
+    app.get('/purchase', verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      const decodedEmail = req.decoded.email;
+      if(email=== decodedEmail){
+        const query = { email: email };
+        const purchase = await purchaseCollection.find(query).toArray();
+        return res.send(purchase);
+      }
+      else{
+        return res.status(403).send({message: 'forbidden access'});
+      }
+      
+    })
+
+    app.post('/purchase', async (req, res) => {
+      const purchase = req.body;
+      const result = await purchaseCollection.insertOne(purchase);
+      res.send(result);
+    })
+
+    app.delete('/purchase/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await purchaseCollection.deleteOne(filter);
+      res.send(result);
+    })
+
+    app.get('/review', async (req, res) => {
+      const query = {};
+      const cursor = reviewCollection.find(query);
+      const tools = (await cursor.toArray()).reverse();
+      res.send(tools);
+    })
+
+    app.post('/review', async (req, res) => {
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    })
+
+    app.put('/userinfo/:email', async (req, res) => {
+      const email = req.params.email;
+      const userinfo = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: userinfo,
+      };
+      const result = await userProfileCollection.updateOne(filter, updateDoc, options);
+
+      res.send(result);
+    });
+
+    app.put('/user/:email', async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+      res.send({ result, token });
+    })
+  }
+  finally {
+
+  }
 }
 
 run().catch(console.dir);
