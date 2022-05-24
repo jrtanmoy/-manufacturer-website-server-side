@@ -60,7 +60,7 @@ async function run(){
         app.get('/review', async(req, res) =>{
           const query = {};
           const cursor = reviewCollection.find(query);
-          const tools = await cursor.toArray();
+          const tools = (await cursor.toArray()).reverse();
           res.send(tools);
       })
 
