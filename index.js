@@ -36,6 +36,13 @@ async function run(){
             res.send(tool);
         })
 
+        app.get('/purchase', async(req, res) =>{
+          const email = req.query.email;
+          const query = {email: email};
+          const purchase = await purchaseCollection.find(query).toArray();
+          res.send(purchase);
+        })
+
         app.post('/purchase', async(req, res) =>{
           const purchase = req.body;
           const result = await purchaseCollection.insertOne(purchase);
