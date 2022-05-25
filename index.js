@@ -69,6 +69,21 @@ async function run() {
 
     })
 
+    app.get('/purchases', verifyJWT,  async (req, res) => {
+      const query = {};
+      const cursor = purchaseCollection.find(query);
+      const purchases = await cursor.toArray();
+      res.send(purchases);
+
+    })
+
+    app.delete('/purchases/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await purchaseCollection.deleteOne(filter);
+      res.send(result);
+    })
+
     app.post('/purchase', async (req, res) => {
       const purchase = req.body;
       const result = await purchaseCollection.insertOne(purchase);
