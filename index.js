@@ -42,16 +42,16 @@ async function run() {
     const userCollection = client.db('manufacturer_website').collection('users');
     const paymentCollection = client.db('manufacturer_website').collection('payments');
 
-    app.post('/create-payment-intent', verifyJWT, async(req, res) =>{
+    app.post('/create-payment-intent', verifyJWT, async (req, res) => {
       const service = req.body;
       const price = service.price;
-      const amount = price*100;
+      const amount = price * 100;
       const paymentIntent = await stripe.paymentIntents.create({
-        amount : amount,
+        amount: amount,
         currency: 'usd',
-        payment_method_types:['card']
+        payment_method_types: ['card']
       });
-      res.send({clientSecret: paymentIntent.client_secret})
+      res.send({ clientSecret: paymentIntent.client_secret })
     });
 
     app.get('/tool', async (req, res) => {
@@ -95,14 +95,14 @@ async function run() {
 
     })
 
-    app.get('/purchase/:id', verifyJWT, async(req, res) =>{
+    app.get('/purchase/:id', verifyJWT, async (req, res) => {
       const id = req.params.id;
-      const query = {_id: ObjectId(id)};
+      const query = { _id: ObjectId(id) };
       const purchase = await purchaseCollection.findOne(query);
       res.send(purchase);
     })
 
-    app.get('/purchases', verifyJWT,  async (req, res) => {
+    app.get('/purchases', verifyJWT, async (req, res) => {
       const query = {};
       const cursor = purchaseCollection.find(query);
       const purchases = await cursor.toArray();
@@ -130,10 +130,10 @@ async function run() {
       res.send(result);
     })
 
-    app.patch('/purchase/:id', verifyJWT, async(req, res) =>{
-      const id  = req.params.id;
+    app.patch('/purchase/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id;
       const payment = req.body;
-      const filter = {_id: ObjectId(id)};
+      const filter = { _id: ObjectId(id) };
       const updatedDoc = {
         $set: {
           paid: true,
@@ -177,11 +177,11 @@ async function run() {
       res.send(users);
     })
 
-    app.get('/admin/:email', async(req, res) =>{
+    app.get('/admin/:email', async (req, res) => {
       const email = req.params.email;
-      const user = await userCollection.findOne({email: email});
+      const user = await userCollection.findOne({ email: email });
       const isAdmin = user.role === 'admin';
-      res.send({admin: isAdmin})
+      res.send({ admin: isAdmin })
     })
 
     app.put('/user/admin/:email', verifyJWT, async (req, res) => {
@@ -196,8 +196,8 @@ async function run() {
         const result = await userCollection.updateOne(filter, updateDoc);
         res.send(result);
       }
-      else{
-        res.status(403).send({message: 'forbidden'});
+      else {
+        res.status(403).send({ message: 'forbidden' });
       }
 
     })
@@ -222,7 +222,7 @@ async function run() {
       res.send(result);
     })
 
-    
+
 
 
 
