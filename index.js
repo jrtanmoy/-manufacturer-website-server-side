@@ -77,7 +77,7 @@ async function run() {
 
     })
 
-    app.delete('/purchases/:id', async (req, res) => {
+    app.delete('/purchases/:id', verifyJWT, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: ObjectId(id) };
       const result = await purchaseCollection.deleteOne(filter);
@@ -170,6 +170,12 @@ async function run() {
       const email = req.params.email;
       const filter = { email: email };
       const result = await userCollection.deleteOne(filter);
+      res.send(result);
+    })
+
+    app.post('/product', async (req, res) => {
+      const product = req.body;
+      const result = await toolCollection.insertOne(product);
       res.send(result);
     })
 
