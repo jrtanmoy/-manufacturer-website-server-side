@@ -40,7 +40,7 @@ async function run() {
     const reviewCollection = client.db('manufacturer_website').collection('review');
     const userProfileCollection = client.db('manufacturer_website').collection('profile-info');
     const userCollection = client.db('manufacturer_website').collection('users');
-
+    const paymentCollection = client.db('manufacturer_website').collection('payments');
 
     app.post('/create-payment-intent', verifyJWT, async(req, res) =>{
       const service = req.body;
@@ -115,6 +115,22 @@ async function run() {
       const filter = { _id: ObjectId(id) };
       const result = await purchaseCollection.deleteOne(filter);
       res.send(result);
+    })
+
+    app.patch('/purchase/:id', verifyJWT, async(req, res) =>{
+      const id  = req.params.id;
+      const payment = req.body;
+      const filter = {_id: ObjectId(id)};
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId
+        }
+      }
+
+      const result = await paymentCollection.insertOne(payment);
+      const updatedPurchase = await purchaseCollection.updateOne(filter, updatedDoc);
+      res.send(updatedPurchase);
     })
 
     app.get('/review', async (req, res) => {
