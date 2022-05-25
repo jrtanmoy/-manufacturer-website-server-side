@@ -68,6 +68,19 @@ async function run() {
       res.send(tool);
     })
 
+    app.post('/product', async (req, res) => {
+      const product = req.body;
+      const result = await toolCollection.insertOne(product);
+      res.send(result);
+    })
+
+    app.delete('/tool/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await toolCollection.deleteOne(filter);
+      res.send(result);
+    })
+
     app.get('/purchase', verifyJWT, async (req, res) => {
       const email = req.query.email;
       const decodedEmail = req.decoded.email;
@@ -209,11 +222,7 @@ async function run() {
       res.send(result);
     })
 
-    app.post('/product', async (req, res) => {
-      const product = req.body;
-      const result = await toolCollection.insertOne(product);
-      res.send(result);
-    })
+    
 
 
 
