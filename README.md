@@ -1,5 +1,5 @@
 JR Manufacturer
-*Description : This server is used for a tool manufacturer company.
+* Description : This server is used for a tool manufacturer company.
 
 This project  [live site](https://manufacturer-website-114d0.web.app/).
 
